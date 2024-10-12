@@ -1,25 +1,32 @@
-# Use the official Python 3.9 slim image as a base
-FROM python:3.9-slim
+name: Build and Push Docker Image
 
-# Install necessary tools: bash, sh, and other utilities
-RUN apt-get update && apt-get install -y \
-    bash \
-    busybox \
-    curl \
-    vim \
-    && rm -rf /var/lib/apt/lists/*
+on:
+  push:
+    branches:
+      - master
 
-# Set the working directory to /app
-WORKDIR /app
+jobs:
+  build:
+    runs-on: parpar_n
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+    steps:
+    # Check out the repository code
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-# Install Python dependencies from requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+    # Log in to Docker Hub
+    - name: Log in to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
 
-# Expose port 5000 for the Flask application
-EXPOSE 5000
+    # Build the Docker image
+    - name: Build Docker image
+      run: |
+        docker build -t parpar1995/parpar_repo:latest .
 
-# Run the Flask application using Python
-CMD ["python", "apipro.py"]
+    # Push the Docker image to Docker Hub
+    - name: Push Docker image to Docker Hub
+      run: |
+        docker push parpar1995/parpar_repo:latest
